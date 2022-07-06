@@ -38,6 +38,14 @@ class _MyAppState extends State<MyApp> {
                   },
                   child: const Text("Enable administrative"),
                 ),
+                TextButton(
+                  onPressed: () async {
+                    final temp = await DevicePolicyManager.setLockTaskMode();
+
+                    print('setLockTaskMode $temp');
+                  },
+                  child: const Text("Set Lock Task Mode"),
+                ),
                 const SizedBox(height: 20.0),
                 TextButton(
                   onPressed: () async {

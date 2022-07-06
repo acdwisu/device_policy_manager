@@ -63,6 +63,18 @@ public class DevicePolicyManagerPlugin
             } else {
                 result.error("ERROR", "You need to enable the Admin Device Features", null);
             }
+        } else if (call.method.equals("insertLockTaskMode")) {
+            boolean active = deviceManger.isAdminActive(compName);
+
+            if (active) {
+                String packageName = call.argument("package-name").toString();
+
+                deviceManger.setLockTaskPackages(compName, new String[]{packageName});
+
+                result.success(deviceManger.isLockTaskPermitted(packageName));
+            } else {
+                result.error("ERROR", "You need to enable the Admin Device Features", null);
+            }
         } else {
             result.notImplemented();
         }

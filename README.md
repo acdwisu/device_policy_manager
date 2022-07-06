@@ -70,3 +70,6 @@ await DevicePolicyManager.lockNow();
 final status = await DevicePolicyManager.isCameraDisabled();
 
 ```
+
+Elevate device owner via adb
+~ dpm set-device-owner device.policy.manager_example/device.policy.manager.DeviceAdmin
