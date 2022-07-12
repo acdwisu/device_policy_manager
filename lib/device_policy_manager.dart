@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter/services.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 class DevicePolicyManager {
   static const MethodChannel _channel =
@@ -73,13 +72,39 @@ class DevicePolicyManager {
   }
 
   /// insert this app to allowlist of device policy manager lock task mode
-  static Future<bool> setLockTaskMode() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-
+  static Future<bool> setLockTaskMode(String packageName) async {
     try {
       return await _channel.invokeMethod(
           'insertLockTaskMode', {
-        'package-name': packageInfo.packageName
+        'package-name': packageName
+      });
+    } on PlatformException catch (error) {
+      log("$error");
+
+      return false;
+    }
+  }
+
+  /// remove this app from allowlist of device policy manager lock task mode
+  static Future<bool> unsetLockTaskMode(String packageName) async {
+    try {
+      return await _channel.invokeMethod(
+          'removeLockTaskMode', {
+        'package-name': packageName
+      });
+    } on PlatformException catch (error) {
+      log("$error");
+
+      return false;
+    }
+  }
+
+  /// check whether the app in allowlist lock task
+  static Future<bool> isInLockTask(String packageName) async {
+    try {
+      return await _channel.invokeMethod(
+          'isInLockTask', {
+        'package-name': packageName
       });
     } on PlatformException catch (error) {
       log("$error");

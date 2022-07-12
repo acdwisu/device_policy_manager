@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:device_policy_manager/device_policy_manager.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,13 +39,27 @@ class _MyAppState extends State<MyApp> {
                   },
                   child: const Text("Enable administrative"),
                 ),
+                const SizedBox(height: 20.0),
                 TextButton(
                   onPressed: () async {
-                    final temp = await DevicePolicyManager.setLockTaskMode();
+                    final packageInfo = await PackageInfo.fromPlatform();
+
+                    final temp = await DevicePolicyManager.setLockTaskMode(packageInfo.packageName);
 
                     print('setLockTaskMode $temp');
                   },
                   child: const Text("Set Lock Task Mode"),
+                ),
+                const SizedBox(height: 20.0),
+                TextButton(
+                  onPressed: () async {
+                    final packageInfo = await PackageInfo.fromPlatform();
+
+                    final temp = await DevicePolicyManager.unsetLockTaskMode(packageInfo.packageName);
+
+                    print('unsetLockTaskMode $temp');
+                  },
+                  child: const Text("Unset Lock Task Mode"),
                 ),
                 const SizedBox(height: 20.0),
                 TextButton(

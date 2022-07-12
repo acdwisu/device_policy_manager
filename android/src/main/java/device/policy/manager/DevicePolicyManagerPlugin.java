@@ -8,6 +8,10 @@ import android.content.Intent;
 
 import androidx.annotation.NonNull;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -43,40 +47,78 @@ public class DevicePolicyManagerPlugin
         deviceManger = (DevicePolicyManager) appContext.getSystemService(Context.DEVICE_POLICY_SERVICE);
         pendingResult = result;
 
-        if (call.method.equals("enablePermission")) {
-            String message = call.argument("message").toString();
-            Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, compName);
-            intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, message);
-            mActivity.startActivityForResult(intent, REQUEST_CODE_FOR_DEVICE_POLICY_MANAGER);
-        } else if (call.method.equals("removeActiveAdmin")) {
-            deviceManger.removeActiveAdmin(compName);
-        } else if (call.method.equals("isPermissionGranted")) {
-            result.success(deviceManger.isAdminActive(compName));
-        } else if (call.method.equals("isCameraDisabled")) {
-            result.success(deviceManger.getCameraDisabled(compName));
-        } else if (call.method.equals("lockScreen")) {
-            boolean active = deviceManger.isAdminActive(compName);
-            if (active) {
-                deviceManger.lockNow();
-                result.success(null);
-            } else {
-                result.error("ERROR", "You need to enable the Admin Device Features", null);
+        switch (call.method) {
+            case "enablePermission":
+                String message = Objects.requireNonNull(call.argument("message")).toString();
+                Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+                intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, compName);
+                intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, message);
+                mActivity.startActivityForResult(intent, REQUEST_CODE_FOR_DEVICE_POLICY_MANAGER);
+                break;
+            case "removeActiveAdmin":
+                deviceManger.removeActiveAdmin(compName);
+                break;
+            case "isPermissionGranted":
+                result.success(deviceManger.isAdminActive(compName));
+                break;
+            case "isCameraDisabled":
+                result.success(deviceManger.getCameraDisabled(compName));
+                break;
+            case "lockScreen": {
+                boolean active = deviceManger.isAdminActive(compName);
+                if (active) {
+                    deviceManger.lockNow();
+                    result.success(null);
+                } else {
+                    result.error("ERROR", "You need to enable the Admin Device Features", null);
+                }
+                break;
             }
-        } else if (call.method.equals("insertLockTaskMode")) {
-            boolean active = deviceManger.isAdminActive(compName);
+            case "insertLockTaskMode": {
+                boolean active = deviceManger.isAdminActive(compName);
 
-            if (active) {
-                String packageName = call.argument("package-name").toString();
+                if (active) {
+                    String packageName = Objects.requireNonNull(call.argument("package-name")).toString();
 
-                deviceManger.setLockTaskPackages(compName, new String[]{packageName});
+                    deviceManger.setLockTaskPackages(compName, new String[]{packageName});
 
-                result.success(deviceManger.isLockTaskPermitted(packageName));
-            } else {
-                result.error("ERROR", "You need to enable the Admin Device Features", null);
+                    result.success(deviceManger.isLockTaskPermitted(packageName));
+                } else {
+                    result.error("ERROR", "You need to enable the Admin Device Features", null);
+                }
+                break;
             }
-        } else {
-            result.notImplemented();
+            case "removeLockTaskMode": {
+                boolean active = deviceManger.isAdminActive(compName);
+
+                if (active) {
+                    String packageName = Objects.requireNonNull(call.argument("package-name")).toString();
+                    List<String> packages = Arrays.asList(deviceManger.getLockTaskPackages(compName));
+                    packages.removeIf(e -> e.equals(packageName));
+
+                    deviceManger.setLockTaskPackages(compName, (String[]) packages.toArray());
+
+                    result.success(!deviceManger.isLockTaskPermitted(packageName));
+                } else {
+                    result.error("ERROR", "You need to enable the Admin Device Features", null);
+                }
+                break;
+            }
+            case "isInLockTask": {
+                boolean active = deviceManger.isAdminActive(compName);
+
+                if (active) {
+                    String packageName = Objects.requireNonNull(call.argument("package-name")).toString();
+
+                    result.success(deviceManger.isLockTaskPermitted(packageName));
+                } else {
+                    result.error("ERROR", "You need to enable the Admin Device Features", null);
+                }
+                break;
+            }
+            default:
+                result.notImplemented();
+                break;
         }
     }
 
